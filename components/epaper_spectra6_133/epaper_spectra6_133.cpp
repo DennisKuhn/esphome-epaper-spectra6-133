@@ -33,8 +33,10 @@ static constexpr int OPERATION_ROWS_PER_STEP = 8;
 // slows down further at low ambient temperature, so the guard is deliberately
 // well above the typical refresh duration. Aborting a refresh that is still
 // running would leave the panel half-updated and discard the change-detection
-// baseline, which is far worse than waiting a few extra seconds.
-static constexpr int64_t REFRESH_BUSY_TIMEOUT_US = 40000LL * 1000LL;  // 40 s
+// baseline, which is far worse than waiting a few extra seconds. 40 s proved too
+// short on an XIAO EE02 in a cool room: early-morning partial refreshes timed out
+// although the panel finished, so the guard is 60 s.
+static constexpr int64_t REFRESH_BUSY_TIMEOUT_US = 60000LL * 1000LL;  // 60 s
 
 // Timeout for the BUSY-wait stages that only cover the panel's power sequencing
 // (PON, POF, pre-deep-sleep). These complete in milliseconds on healthy hardware.
@@ -1195,6 +1197,9 @@ void EpaperSpectra6133::process_wait_refresh_stage_() {
     return;  // still busy; try again next loop()
   }
   // The panel has completed the DRF cycle: the transferred pixels are now visible.
+  // Logged so the margin to REFRESH_BUSY_TIMEOUT_US can be measured on real hardware.
+  ESP_LOGI(TAG, "Refresh wait took %lld ms",
+           static_cast<long long>((esp_timer_get_time() - this->active_operation_.stage_start_us) / 1000LL));
   this->active_operation_.refresh_completed = true;
   this->active_operation_.stage = DisplayOperationStage::POWER_OFF;
 }
