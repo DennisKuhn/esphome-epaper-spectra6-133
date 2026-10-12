@@ -30,8 +30,7 @@ static constexpr size_t FULL_FRAME_SIZE = ROW_BYTES * EPD_HEIGHT;
  * Default limit in milliseconds for the BUSY wait after the refresh command
  * (YAML `refresh_timeout`). A full-frame refresh runs for tens of seconds and
  * slows down at low ambient temperature, so the guard sits well above the typical
- * duration: aborting a refresh that is still running discards the change-detection
- * baseline, which is far worse than waiting a few extra seconds.
+ * duration.
  */
 static constexpr uint32_t DEFAULT_REFRESH_TIMEOUT_MS = 40000;
 /** Maximum SPI payload chunk sent in one transaction. */
